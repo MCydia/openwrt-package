@@ -1,4 +1,4 @@
-# [[MCydia/build-openwrt的专用软件包](https://github.com/MCydia/build-openwrt.git)]
+# [[MCydia/build-openwrt的专用软件包](https://github.com/MCydia/openwrt-package.git)]
 
 #
 #### 分支[master]的为lede源码专用，分支[19.07]的为lienol源码专用，分支[project-18.06]的为project源码专用
