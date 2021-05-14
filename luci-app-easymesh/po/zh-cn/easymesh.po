@@ -1,3 +1,6 @@
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8\n"
+
 msgid "easymesh"
 msgstr "easymesh"
 
@@ -13,8 +16,11 @@ msgstr "基本设置"
 msgid "Enable"
 msgstr "启用"
 
-msgid "interface"
-msgstr "接口"
+msgid "MESH Radio device"
+msgstr "MESH无线设备"
+
+msgid "The radio device which MESH use"
+msgstr "使用MESH组网的无线设备"
 
 msgid "AUTO"
 msgstr "自动"
