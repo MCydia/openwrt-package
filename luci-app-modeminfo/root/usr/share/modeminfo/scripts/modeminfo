@@ -8,29 +8,11 @@ GSCRIPT="$RES/scripts/3ginfo.gcom"
 
 function get_device_info() {
 	DEVPORT=$(uci -q get modeminfo.@modeminfo[0].device)
-	for port in $(ls /dev/cdc-wdm* 2>/dev/null); do
-                if [ $DEVPORT == $port ]; then
-                        logger -t "luci-app-modeminfo" "device port is NOT serial. Check port or config!"
-                        exit 0
-                fi
-        done
-	if [ "x$DEVPORT" = "x" ]; then
-		get_port
-	fi
+	case $DEVPORT in
+                *tty*) continue ;;
+                *) get_port ;;
+        esac
 	O=$(gcom -d $DEVPORT -s $GSCRIPT 2>/dev/null)
-	#O=$(cat /root/modem.log)
-	SEC=$(uci show network | grep "/dev/"${DEV##/*/} | cut -f2 -d.)
-	if [ -z "$SEC" ]; then
-		getpath $DEVPORT
-		PORIG=$P
-		for DEV in /sys/class/tty/* /sys/class/usbmisc/*; do
-			getpath "/dev/"${DEV##/*/}
-			if [ "x$PORIG" = "x$P" ]; then
-				SEC=$(uci show network | grep "/dev/"${DEV##/*/} | cut -f2 -d.)
-				[ -n "$SEC" ] && break
-			fi
-		done
-	fi
 	IMEI=$(echo "$O" | awk -F[:] '/IMEI/ { print $2}')
 }
 
@@ -98,21 +80,6 @@ function mmcli_name(){
 			fi
 		fi
 	fi
-}
-
-# get path serial port modem
-function getpath() {
-	devname="$(basename "$1")"
-	case "$devname" in
-	'tty'*)
-		devpath="$(readlink -f /sys/class/tty/$devname/device)"
-		P=${devpath%/*/*}
-		;;
-	*)
-		devpath="$(readlink -f /sys/class/usbmisc/$devname/device/)"
-		P=${devpath%/*}
-		;;
-	esac
 }
 
 # get CSQ 
@@ -266,6 +233,11 @@ function huawei_data(){
 		esac
 	fi
 	CHIPTEMP=$(echo "$O" | awk -F[,] '/^\^CHIPTEMP/ {print $4}')
+	# 65535 -> Not supported currently
+	if [ $CHIPTEMP -eq 65535 ]; then
+		# CHIPTEMP for Huawei ME909u-521
+		CHIPTEMP=$(echo "$O" | awk -F[,] '/^\^CHIPTEMP/ {print $6 * 0.1}')
+	fi
 	case $BWDx in
 		1400) BWDL=0 ;;
 		3000) BWDL=1 ;;
@@ -548,7 +520,14 @@ function dell_data(){
                 fi
 	else
 		EARFCN=$(echo "$O" | awk -F [\:/] '/Active channel/{gsub(" ","", $2); print $2}')
-		SINR=$(echo "$O" | awk -F [\:./] '/RSSI/{gsub("dBm",""); print $5}')
+		RSCP=$(echo "$O" | awk -F [\:\ ,\)/] '/RSCP/{gsub("dBm|)",""); printf "%.0f\n", $7}')
+                CSQ_RSSI=$(echo "$O" | awk -F [\:\ ,\)/] '/RSSI/{gsub("dBm|)",""); printf "%.0f\n", $7}')
+                SINR=$(echo $CSQ_RSSI $RSCP | awk '{print $2 - $1}')                      
+                if [ $SINR -le -24 ]; then                                    
+                        SINR=-24                            
+                elif [ $SINR -ge 0 ]; then                                      
+                        SINR=0                                                                        
+                fi
 		
 	fi
 	CHIPTEMP=$(echo "$O" | awk -F [:] '/xo_therm_buf:/{print $2}')
