@@ -156,22 +156,19 @@ function get_reg_data_mikrotik() {
 
 # Get Registration data
 function get_reg_data(){
-	# CREG
-	CREG="+CGREG"
-	LAC=$(echo "$O" | awk -F[,] '/\'$CREG'/  {gsub("^A-F0-9|\"", ""); printf "%s", toupper($3)}')
-	if [ "x$LAC" != "x" ]; then
-		if [ $MODE = "LTE" ]; then
-			CREG="+CEREG"
-		else
-			CREG="+CGREG"
+	for CREG in "+CREG" "+CGREG" "+CEREG"; do
+		LAC=$(echo "$O" | awk -F[,] '/\'$CREG'/  {gsub("^A-F0-9|\"", ""); printf "%s", toupper($3)}')
+		CID=$(echo "$O" | awk -F[,] '/\'$CREG'/  {gsub("^A-F0-9|\"", ""); printf "%s", toupper($4)}')
+		if [ "$LAC" -a "$CID" ]; then
+			break
 		fi
-	else
-		CREG="+CREG"
+	done
+	if [ $LAC = "FFFE" ]; then
+		CREG="+CEREG"
+		LAC=$(echo "$O" | awk -F[,] '/\'$CREG'/  {gsub("^A-F0-9|\"", ""); printf "%s", toupper($3)}')
 	fi
-	LAC=$(echo "$O" | awk -F[,] '/\'$CREG'/  {gsub("^A-F0-9|\"", ""); printf "%s", toupper($3)}')
 	LAC_NUM=$(printf %d 0x$LAC)
-	#CREG="+CGREG"
-	CID=$(echo "$O" | awk -F[,] '/\'$CREG'/  {gsub("^A-F0-9|\"", ""); printf "%s", toupper($4)}')
+	REGST=$(echo "$O" | awk -F[,] '/\'$CREG'/ {print $2}')
 	ENBx=$(echo $CID | sed -e 's/..$//')
 	ENBID=$(printf %d 0x$ENBx)
 	if [ "x$CID" != "x" ]; then
@@ -182,7 +179,6 @@ function get_reg_data(){
 			T=$CID
 		fi
 	fi
-	REGST=$(echo "$O" | awk -F[,] '/\'$CREG'/ {print $2}')
 }
 
 # Huawei modems
