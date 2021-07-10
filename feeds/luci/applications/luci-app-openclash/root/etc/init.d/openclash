@@ -12,6 +12,7 @@ CLASH_CONFIG="/etc/openclash"
 CRON_FILE="/etc/crontabs/root"
 RAW_CONFIG_FILE=$(uci -q get openclash.config.config_path)
 BACKUP_FILE="/etc/openclash/backup/$(uci -q get openclash.config.config_path |awk -F '/' '{print $5}' 2>/dev/null)"
+CACHE_PATH="/etc/openclash/.cache"
 LOG_FILE="/tmp/openclash.log"
 START_LOG="/tmp/openclash_start.log"
 CONFIG_FILE="/etc/openclash/$(uci -q get openclash.config.config_path |awk -F '/' '{print $5}' 2>/dev/null)"
@@ -757,6 +758,7 @@ if [ -z "$RAW_CONFIG_FILE" ] || [ ! -f "$RAW_CONFIG_FILE" ]; then
    fi
 fi 2>/dev/null
 CONFIG_NAME=$(echo "$RAW_CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
+HISTORY_PATH="/etc/openclash/history/${CONFIG_NAME%.*}"
 
 if [ ! -f "$RAW_CONFIG_FILE" ]; then
    config_load "openclash"
@@ -1026,6 +1028,11 @@ start_run_core()
    modprobe tun >/dev/null 2>&1
    check_interface_name
    config_reload=$(uci get openclash.config.config_reload 2>/dev/null)
+   #Resore history cache
+   cmp -s "$CACHE_PATH" "$HISTORY_PATH"
+   if [ "$?" -ne "0" ]; then
+      cp "$HISTORY_PATH" "$CACHE_PATH" 2>/dev/null
+   fi
    if [ -n "$(pidof clash)" ] && [ "$core_type" != "TUN" ] && [ "$config_reload" != "0" ]; then
       curl -s --connect-timeout 5 -m 5 -H 'Content-Type: application/json' -H "Authorization: Bearer ${da_password}" -XPUT http://"$lan_ip":"$cn_port"/configs -d "{\"path\": \"$CONFIG_FILE\"}" 2>/dev/null
    else
@@ -1370,10 +1377,16 @@ fi
    ipset add localnetwork 240.0.0.0/4
    ipset add localnetwork 172.16.0.0/12
    ipset add localnetwork 100.64.0.0/10
+   
+   if [ -n "$lan_ip_cidrs" ]; then
+      for lan_ip_cidr in $lan_ip_cidrs; do
+         ipset add localnetwork "$lan_ip_cidr" 2>/dev/null
+      done
+   fi
 
-   if [ -n "$wan_ip4" ]; then
-      for wan_ip4s in $wan_ip4; do
-         ipset add localnetwork "$wan_ip4s" 2>/dev/null
+   if [ -n "$wan_ip4s" ]; then
+      for wan_ip4 in $wan_ip4s; do
+         ipset add localnetwork "$wan_ip4" 2>/dev/null
       done
    fi
 
@@ -1707,8 +1720,9 @@ get_config()
    http_port=$(uci -q get openclash.config.http_port)
    socks_port=$(uci -q get openclash.config.socks_port)
    enable_redirect_dns=$(uci -q get openclash.config.enable_redirect_dns)
-   lan_ip=$(uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 2>/dev/null)
-   wan_ip4=$(ifconfig | grep 'inet addr' | awk '{print $2}' | cut -d: -f2 2>/dev/null)
+   lan_ip=$(uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 2>/dev/null || ip addr show 2>/dev/null | grep -w 'inet' | grep 'global' | grep 'brd' | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -n 1)
+   lan_ip_cidrs=$(ip route | grep "/" | awk '{print $1}' | grep -vE "^198.18" 2>/dev/null)
+   wan_ip4s=$(ifconfig | grep 'inet addr' | awk '{print $2}' | cut -d: -f2 | grep -vE "(^198.18|^192.168|^127.0)" 2>/dev/null)
    lan_ip6=$(ifconfig | grep 'inet6 addr' | awk '{print $3}' 2>/dev/null)
    disable_masq_cache=$(uci -q get openclash.config.disable_masq_cache)
    log_level=$(uci -q get openclash.config.log_level)
@@ -1782,11 +1796,8 @@ start()
    echo "第九步: 重启 Dnsmasq 程序..." >$START_LOG
    change_dns "$enable_redirect_dns" "$disable_masq_cache"
    /etc/init.d/dnsmasq restart >/dev/null 2>&1
-            
-   echo "第十步: 还原策略组节点状态..." >$START_LOG
-   /usr/share/openclash/openclash_history_set.sh
    
-   echo "第十一步: 添加计划任务,启动进程守护程序..." >$START_LOG
+   echo "第十步: 添加计划任务,启动进程守护程序..." >$START_LOG
    add_cron
    if [ -z "$(uci -q get dhcp.lan.dhcpv6)" ] && [ "$(uci -q get openclash.config.restricted_mode)" != "1" ]; then
       echo "OpenClash 启动成功，请等待服务器上线！" >$START_LOG
