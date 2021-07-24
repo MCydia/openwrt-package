@@ -77,8 +77,8 @@ msgstr "上传文件列表中有 OpenWrt 固件文件，你可以升级 OpenWrt�
 msgid "After uploading [Firmware], [Kernel], [IPK] or [Backup Config], the operation buttons will be displayed."
 msgstr "当上传 [固件文件]，[内核文件]，[IPK文件]，[配置文件] 后，将自动显示相关操作按钮。"
 
-msgid "After uploading firmware (.img.gz or .7z suffix) or kernel files (3 kernel files), the update button will be displayed."
-msgstr "当上传文件列表中有 OpenWrt 固件（.img.gz 或 .7z 后缀）或内核文件（3个内核文件）时，将自动显示相关操作按钮。"
+msgid "After uploading firmware (.img.gz/.img.xz/.7z suffix) or kernel files (3 kernel files), the update button will be displayed."
+msgstr "当上传文件列表中有 OpenWrt 固件（.img.gz/.img.xz/.7z 后缀）或内核文件（3个内核文件）时，将自动显示相关操作按钮。"
 
 msgid "Amlogic Service"
 msgstr "晶晨宝盒"
@@ -203,38 +203,17 @@ msgstr "内核"
 msgid "Replace OpenWrt Kernel"
 msgstr "更换 OpenWrt 内核"
 
-msgid "Tip: There are kernel files in the upload directory, and you can replace the kernel."
-msgstr "提示：上传目录里有内核文件，你可以替换当前 OpenWrt 中正在使用的内核。"
-
 msgid "Tip: The kernel is being replaced, and it will automatically restart after completion."
 msgstr "提示：正在替换内核，完成后将自动重启。"
+
+msgid "Supports related operations on Amlogic series boxes through the panel."
+msgstr "支持通过面板对 Amlogic 系列盒子进行相关操作。"
 
 msgid "Supported functions:"
 msgstr "支持的功能："
 
 msgid "Provide services such as install to EMMC, Update Firmware or Kernel, Backup and Recovery Config for Amlogic STB."
 msgstr "为 Amlogic 系列盒子提供支持，例如将 OpenWrt 系统写入 EMMC、升级固件或内核，备份与恢复自定义配置等功能。"
-
-msgid "Script description:"
-msgstr "脚本说明："
-
-msgid "Install OpenWrt: openwrt-install"
-msgstr "安装 OpenWrt：openwrt-install"
-
-msgid "Update OpenWrt firmware: openwrt-update"
-msgstr "升级 OpenWrt 固件：openwrt-update"
-
-msgid "Replace OpenWrt kernel: openwrt-kernel -r"
-msgstr "更换 OpenWrt 内核：openwrt-kernel -r"
-
-msgid "Backup Config: openwrt-backup -b"
-msgstr "备份配置：openwrt-backup -b"
-
-msgid "Restore Config: openwrt-backup -r"
-msgstr "恢复配置：openwrt-backup -r"
-
-msgid "The plug-in uses the above commands for related operations, and these commands can also be used in terminals."
-msgstr "插件使用以上命令进行相关操作，这些命令也可以在 TTYD 等终端中使用。"
 
 msgid "Supported Amlogic STB:"
 msgstr "支持的盒子："
@@ -296,9 +275,6 @@ msgstr "提示：正在还原配置，完成后将自动重启。"
 msgid "Online Download Update"
 msgstr "在线下载更新"
 
-msgid "Example"
-msgstr "示例"
-
 msgid "Config Source"
 msgstr "配置来源"
 
@@ -329,7 +305,7 @@ msgstr "设置 [在线下载更新] 中 github.com 的 Releases 里 Tags 的关�
 msgid "Suffix of OpenWrt files in Releases:"
 msgstr "Releases 里 OpenWrt 文件的后缀："
 
-msgid "Set the suffix of the OpenWrt files in Releases of github.com in [Online Download Update]."
+msgid "Set the suffix of the OpenWrt in Releases of github.com in [Online Download Update]."
 msgstr "设置 [在线下载更新] 中 github.com 的 Releases 里 OpenWrt 文件的后缀。"
 
 msgid "Keep config update:"
