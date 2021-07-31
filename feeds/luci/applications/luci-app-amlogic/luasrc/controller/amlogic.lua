@@ -25,6 +25,9 @@ function index()
     entry({"admin", "system", "amlogic", "start_amlogic_update"},call("action_start_amlogic_update")).leaf=true
     entry({"admin", "system", "amlogic", "start_amlogic_kernel"},call("action_start_amlogic_kernel")).leaf=true
     entry({"admin", "system", "amlogic", "start_amlogic_plugin"},call("action_start_amlogic_plugin")).leaf=true
+    entry({"admin", "system", "amlogic", "start_snapshot_delete"},call("action_start_snapshot_delete")).leaf=true
+    entry({"admin", "system", "amlogic", "start_snapshot_restore"},call("action_start_snapshot_restore")).leaf=true
+    entry({"admin", "system", "amlogic", "start_snapshot_list"},call("action_check_snapshot")).leaf=true
     entry({"admin", "system", "amlogic", "state"},call("action_state")).leaf=true
 
 end
@@ -117,14 +120,40 @@ function start_amlogic_install()
     return state
 end
 
+function start_snapshot_delete()
+    local snapshot_delete_sel = luci.http.formvalue("snapshot_delete_sel")
+    local state = luci.sys.exec("btrfs subvolume delete -c /.snapshots/" .. snapshot_delete_sel .. " 2>/dev/null && sync")
+    return state
+end
+
+function start_snapshot_restore()
+    local snapshot_restore_sel = luci.http.formvalue("snapshot_restore_sel")
+    local state = luci.sys.exec("btrfs subvolume snapshot /.snapshots/etc-" .. snapshot_restore_sel .. " /etc 2>/dev/null && sync")
+    local state_nowreboot = luci.sys.exec("echo 'b' > /proc/sysrq-trigger 2>/dev/null")
+    return state
+end
+
 function action_check_plugin()
     luci.sys.exec("chmod +x /usr/share/amlogic/amlogic_check_plugin.sh >/dev/null 2>&1")
     return luci.sys.call("/usr/share/amlogic/amlogic_check_plugin.sh >/dev/null 2>&1")
 end
 
-function action_check_kernel()
+function check_plugin()
     luci.sys.exec("chmod +x /usr/share/amlogic/amlogic_check_kernel.sh >/dev/null 2>&1")
-    return luci.sys.call("/usr/share/amlogic/amlogic_check_kernel.sh >/dev/null 2>&1")
+    local kernel_options = luci.http.formvalue("kernel_options")
+    if kernel_options == "check" then
+        local state = luci.sys.call("/usr/share/amlogic/amlogic_check_kernel.sh -check >/dev/null 2>&1")
+    else
+        local state = luci.sys.call("/usr/share/amlogic/amlogic_check_kernel.sh -download " .. kernel_options .. " >/dev/null 2>&1")
+    end
+    return state
+end
+
+function action_check_kernel()
+    luci.http.prepare_content("application/json")
+    luci.http.write_json({
+        check_kernel_status = check_plugin();
+    })
 end
 
 function action_check_firmware()
@@ -187,6 +216,20 @@ function action_start_amlogic_install()
     })
 end
 
+function action_start_snapshot_delete()
+    luci.http.prepare_content("application/json")
+    luci.http.write_json({
+        rule_delete_status = start_snapshot_delete();
+    })
+end
+
+function action_start_snapshot_restore()
+    luci.http.prepare_content("application/json")
+    luci.http.write_json({
+        rule_restore_status = start_snapshot_restore();
+    })
+end
+
 function action_start_amlogic_update()
     luci.http.prepare_content("application/json")
     luci.http.write_json({
@@ -233,6 +276,17 @@ function action_state()
         current_firmware_version = current_firmware_version(),
         current_plugin_version = current_plugin_version(),
         current_kernel_version = current_kernel_version();
+    })
+end
+
+local function current_snapshot()
+    return luci.sys.exec("btrfs subvolume list -rt / | awk '{print $4}' | grep .snapshots") or "Invalid value."
+end
+
+function action_check_snapshot()
+    luci.http.prepare_content("application/json")
+    luci.http.write_json({
+        current_snapshot = current_snapshot();
     })
 end
 
