@@ -1,4 +1,4 @@
-# [[281677160/AutoBuild-OpenWrt的专用软件包](https://github.com/281677160/AutoBuild-OpenWrt)]
+# [[MCydia/OpenWrt的专用软件包](https://github.com/MCydia/OpenWrt)]
 
 #
 #### 分支[master]的为[[lede_source](https://github.com/coolsnowwolf/lede)]源码专用，分支[19.07]的为[[lienol_source](https://github.com/Lienol/openwrt)]源码专用，分支[openwrt-21.02]的为[[Mortal_source](https://github.com/immortalwrt/immortalwrt)]源码专用
@@ -69,7 +69,7 @@
 ##### 如果您是配合我的仓库一起使用的话，这里没有你需要的插件，请不要一下子就拉取别人的插件包
 ##### 相同的文件都拉一起，因为有一些可能还是其他大神修改过的容易造成编译错误的
 ##### 想要什么插件就单独的拉取什么插件就好，或者告诉我，我把插件放我的插件包就行了
-##### 《[单独拉取插件说明](https://github.com/danshui-git/shuoming/blob/master/ming.md)》 ，里面包含各种命令简单说明
+
 #
 #
 ## 感谢各位大神的源码，openwrt有各位大神而精彩，感谢！感谢！，插件每天白天12点跟晚上12点都同步一次各位大神的源码！
