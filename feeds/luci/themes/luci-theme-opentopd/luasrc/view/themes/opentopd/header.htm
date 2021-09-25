@@ -21,7 +21,7 @@
 	local util = require "luci.util"
 	local http = require "luci.http"
 	local disp = require "luci.dispatcher"
-	local fs	= require "nixio.fs"
+	local fs = require "nixio.fs"
 	local nutil = require "nixio.util"
 
 	local boardinfo = util.ubus("system", "board")
@@ -38,8 +38,10 @@
 	local node = disp.context.dispatched
 
 	local categories = disp.node_childs(tree)
-	local ODAY=luci.sys.exec("ls -l -tc 1.jpg |awk -F ' '  '{print int($7)}'")
-	local NDAY=luci.sys.exec("date +'%d' |awk -F ' '  '{print int($1)}' ")
+
+	local ODAY=luci.sys.exec("date  -r  '/www/luci-static/opentopd/img/1.jpg' +'%Y%m%d' |awk -F ' '  '{print int($1+7)}'")
+	local NDAY=luci.sys.exec("date  +'%Y%m%d'  |awk -F ' '  '{print int($1)}' ")
+
 	local c = tree
 	local i, r
 	
@@ -187,20 +189,18 @@
 			end
 		end
 	end
-	
 	math.randomseed(os.time())
-	
 	local bgcount = 0
 	for f in ipairs(glob("/www/luci-static/opentopd/img/*")) do
 		bgcount = bgcount + 1
 	end
-if bgcount < 3 or NDAY > ODAY  then 
+
+if ODAY < NDAY  then 
 luci.sys.exec("(curl -k -L \"$(curl -s https://instant.unsplash.com | grep -oE '\"raw\":\".*?\",\"full\"'| grep -o 'https://.*,' | sed 's/\",//g')\&q=80\&w=1680\" -o /www/luci-static/opentopd/img/1.jpg >/dev/null 2>&1) &")
 luci.sys.exec("(curl -k -L \"$(curl -s https://instant.unsplash.com | grep -oE '\"raw\":\".*?\",\"full\"'| grep -o 'https://.*,' | sed 's/\",//g')\&q=80\&w=1680\" -o /www/luci-static/opentopd/img/2.jpg >/dev/null 2>&1) &")
 luci.sys.exec("(curl -k -L \"$(curl -s https://instant.unsplash.com | grep -oE '\"raw\":\".*?\",\"full\"'| grep -o 'https://.*,' | sed 's/\",//g')\&q=80\&w=1680\" -o /www/luci-static/opentopd/img/3.jpg >/dev/null 2>&1) &")
 end
 
- 
 %>
 
 <!DOCTYPE html>
