@@ -46,16 +46,11 @@ function testwan(cmd)
 end
 
 function test_iperf0(addr)
-       luci.sys.call("killall unblockneteasemusic")
-       luci.sys.call("/etc/init.d/unblockneteasemusic stop ")
-       luci.sys.call("/etc/init.d/unblockmusic stop ")
-       testlan("iperf3 -s ", addr)
+	testlan("iperf3 -s ", addr)
 end
 
 function test_iperf1(addr)
-	luci.sys.call("killall iperf3 ")
-	luci.sys.call("/etc/init.d/unblockneteasemusic restart")
-	luci.sys.call("/etc/init.d/unblockmusic restart")
+	luci.sys.call("killall iperf3")
 end
 
 function get_log()
